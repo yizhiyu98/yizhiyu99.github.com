@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尚博cc台球俱乐部</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .status-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .table {
+            width: 150px;
+            height: 80px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .table:hover {
+            transform: scale(1.05);
+        }
+        
+        .available {
+            background-color: #4CAF50;
+        }
+        
+        .occupied {
+            background-color: #F44336;
+        }
+        
+        .reserved {
+            background-color: #FFC107;
+            color: #333;
+        }
+        
+        .table-number {
+            font-size: 24px;
+        }
+        
+        .table-status {
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .refresh-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .filter-btn {
+            background-color: #9E9E9E;
+            color: white;
+        }
+        
+        .stats {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>尚博cc台球俱乐部</h1>
+    
+    <div class="stats">
+        <p>总桌数: <span id="total-tables">0</span> 
+           空闲：<span id="available-tables">0</span> 
+           使用中：<span id="occupied-tables">0</span> 
+           已预约：<span id="reserved-tables">0</span>
+    </div>
+
+    <div class="controls">
+    <button class="refresh-btn" id="refresh-btn">刷新状态</button>
+    <button class="filter-btn" id="filter-available">只显示空闲</button>
+    <button class="filter-btn" id="show-all">显示全部</button>
+</div>
+<div class="status-container" id="tables-container">
+    <!-- 动态生成的台球桌状态会显示在这里 -->
+</div>
+<script>
+    // 模拟数据 - 实际应用中应从后端API获取
+    const tablesData = [
+        { id: 7, number: '7', status: 'available', type: '标准桌' },
+        { id: 6, number: '6', status: 'available', type: '标准桌' },
+        { id: 5, number: '5', status: 'available', type: '标准桌' },
+        { id: 4, number: '4', status: 'available', type: '标准桌' },
+        { id: 1, number: '1', status: 'available', type: '标准桌' },
+        { id: 2, number: '2', status: 'occupied', type: '标准桌' },
+        { id: 3, number: '3', status: 'available', type: '比赛桌' }
+    ];
+    
+    // 获取DOM元素
+    const tablesContainer = document.getElementById('tables-container');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const filterAvailableBtn = document.getElementById('filter-available');
+    const showAllBtn = document.getElementById('show-all');
+    const totalTablesSpan = document.getElementById('total-tables');
+    const availableTablesSpan = document.getElementById('available-tables');
+    const occupiedTablesSpan = document.getElementById('occupied-tables');
+    const reservedTablesSpan = document.getElementById('reserved-tables');
+// 渲染台球桌状态卡片
+function renderTables(tables) {
+    tablesContainer.innerHTML = '';
+    tables.forEach(table => {
+        const tableElement = document.createElement('div');
+        tableElement.className = `table ${table.status}`;
+        tableElement.innerHTML = `
+            <div class="table-number">${table.number}</div>
+            <div class="table-status">${getStatusText(table.status)}</div>
+            <div class="table-type">${table.type}</div>
+        `;
+        
+        // 点击切换状态（模拟）
+        tableElement.addEventListener('click', () => toggleTableStatus(table.id));
+        tablesContainer.appendChild(tableElement);
+    });
+}
+
+// 状态文本映射
+function getStatusText(status) {
+    const statusMap = {
+        'available': '空闲',
+        'occupied': '使用中',
+        'reserved': '已预约'
+    };
+    return statusMap[status] 
+}
+// 切换台球桌状态
+function toggleTableStatus(tableId) {
+    const table = tablesData.find(t => t.id === tableId);
+    if (table) {
+        table.status = table.status === 'available' ? 'occupied' :
+                      table.status === 'occupied' ? 'reserved' : 'available';
+        renderTables(tablesData);
+        updateStats();
+    }
+}
+
+// 刷新数据（模拟API调用）
+function refreshTables() {
+    setTimeout(() => {
+        console.log('状态已刷新');
+        renderTables(tablesData);
+        updateStats();
+    }, 500);
+}
+
+// 过滤只显示空闲桌子
+function filterAvailableTables() {
+    const availableTables = tablesData.filter(table => table.status === 'available');
+    renderTables(availableTables);
+}
+        // 更新统计信息
+        function updateStats() {
+            totalTablesSpan.textContent = tablesData.length;
+            availableTablesSpan.textContent = tablesData.filter(t => t.status === 'available').length;
+            occupiedTablesSpan.textContent = tablesData.filter(t => t.status === 'occupied').length;
+            reservedTablesSpan.textContent = tablesData.filter(t => t.status === 'reserved').length;
+        }
+
+        // 初始化应用
+        function init() {
+            renderTables(tablesData);
+            updateStats();
+            refreshBtn.addEventListener('click', refreshTables);
+            filterAvailableBtn.addEventListener('click', filterAvailableTables);
+            showAllBtn.addEventListener('click', () => renderTables(tablesData));
+        }
+        
+        init(); // 启动应用
+    </script>
+</body>
+           
